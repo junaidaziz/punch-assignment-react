@@ -31,5 +31,5 @@ export {
   makeSelectCQuestions,
   makeSelectJsQuestions,
   makeSelectRubyQuestions,
-  makeSelectError
+  makeSelectError,
 };

@@ -2,28 +2,27 @@
  * Gets the repositories of the user from Github
  */
 import _ from 'lodash';
-import { take, call, put, select, cancel, takeLatest } from 'redux-saga/effects';
+import { take, call, put, cancel, takeLatest } from 'redux-saga/effects';
+import request from 'utils/request';
 import { LOCATION_CHANGE } from 'react-router-redux';
 import { LOAD_JS_QUESTIONS, LOAD_C_QUESTIONS, LOAD_RUBY_QUESTIONS } from './constants';
 import { jsQuestionsLoaded, QuestionsLoadingError, CQuestionsLoaded, rubyQuestionsLoaded } from './actions';
 
-import request from 'utils/request';
 /**
  * Github repos request/response handler
  */
 
 function getAnswersCount(quesArr, responseObject) {
-  let answeredQuestions = _.filter(quesArr, 'is_answered')
-  let acceptedAnswers = []
-   _.map(quesArr, (question) => {
-    if(question.hasOwnProperty('accepted_answer_id'))
-    {
-      acceptedAnswers.push(question)
+  const answeredQuestions = _.filter(quesArr, 'is_answered');
+  const acceptedAnswers = [];
+  _.map(quesArr, (question) => {
+    if (question.hasOwnProperty('accepted_answer_id')) {
+      acceptedAnswers.push(question);
     }
   });
-  responseObject["acceptedAnswers"] = acceptedAnswers.length
-  responseObject["answeredQuestions"] = answeredQuestions.length
-  return responseObject
+  responseObject.acceptedAnswers = acceptedAnswers.length;
+  responseObject.answeredQuestions = answeredQuestions.length;
+  return responseObject;
 }
 
 
@@ -33,8 +32,8 @@ export function* getJSQuestions() {
   try {
     // Call our request helper (see 'utils/request')
     const jsQuestions = yield call(request, requestURL);
-    let responseObject = { count: jsQuestions.items.length}
-    getAnswersCount(jsQuestions.items, responseObject)
+    const responseObject = { count: jsQuestions.items.length };
+    getAnswersCount(jsQuestions.items, responseObject);
     yield put(jsQuestionsLoaded(responseObject));
   } catch (err) {
     yield put(QuestionsLoadingError(err));
@@ -48,8 +47,8 @@ export function* getRubyQuestions() {
   try {
     // Call our request helper (see 'utils/request')
     const rubyQuestions = yield call(request, requestURL);
-    let responseObject = { count: rubyQuestions.items.length}
-    getAnswersCount(rubyQuestions.items, responseObject)
+    const responseObject = { count: rubyQuestions.items.length };
+    getAnswersCount(rubyQuestions.items, responseObject);
     yield put(rubyQuestionsLoaded(responseObject));
   } catch (err) {
     yield put(QuestionsLoadingError(err));
@@ -63,8 +62,8 @@ export function* getCQuestions() {
   try {
     // Call our request helper (see 'utils/request')
     const cQuestions = yield call(request, requestURL);
-    let responseObject = { count: cQuestions.items.length}
-    getAnswersCount(cQuestions.items, responseObject)
+    const responseObject = { count: cQuestions.items.length };
+    getAnswersCount(cQuestions.items, responseObject);
     yield put(CQuestionsLoaded(responseObject));
   } catch (err) {
     yield put(QuestionsLoadingError(err));
@@ -82,10 +81,10 @@ export function* githubData() {
 }
 
 export function* cData() {
-  const c_watcher = yield takeLatest(LOAD_C_QUESTIONS, getCQuestions);
+  const cWatcher = yield takeLatest(LOAD_C_QUESTIONS, getCQuestions);
 
   yield take(LOCATION_CHANGE);
-  yield cancel(c_watcher);
+  yield cancel(cWatcher);
 }
 
 export function* rubyData() {
@@ -100,5 +99,5 @@ export function* rubyData() {
 export default [
   githubData,
   cData,
-  rubyData
+  rubyData,
 ];

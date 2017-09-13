@@ -25,7 +25,7 @@ import {
 const initialState = fromJS({
   jsQuestions: {},
   rubyQuestions: {},
-  cQuestions: {}
+  cQuestions: {},
 });
 
 function homeReducer(state = initialState, action) {
@@ -37,7 +37,7 @@ function homeReducer(state = initialState, action) {
         .setIn(['jsQuestions'], {});
     case LOAD_JS_QUESTIONS_SUCCESS:
       return state
-        .setIn(['jsQuestions'], action.questions)
+        .setIn(['jsQuestions'], action.questions);
     case LOAD_C_QUESTIONS:
       return state
         .set('loading', true)
@@ -45,7 +45,7 @@ function homeReducer(state = initialState, action) {
         .setIn(['cQuestions'], {});
     case LOAD_C_QUESTIONS_SUCCESS:
       return state
-        .setIn(['cQuestions'], action.questions)
+        .setIn(['cQuestions'], action.questions);
     case LOAD_RUBY_QUESTIONS:
       return state
         .set('loading', true)
@@ -53,7 +53,7 @@ function homeReducer(state = initialState, action) {
         .setIn(['rubyQuestions'], {});
     case LOAD_RUBY_QUESTIONS_SUCCESS:
       return state
-        .setIn(['rubyQuestions'], action.questions)
+        .setIn(['rubyQuestions'], action.questions);
     case LOAD_ERROR:
       return state
         .set('error', action.error)
