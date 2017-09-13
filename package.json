@@ -13,6 +13,8 @@
   "author": "Max Stoiber",
   "license": "MIT",
   "scripts": {
+    "heroku-postbuild": "npm run build",
+    "prebuild": "npm run build:clean",
     "analyze:clean": "rimraf stats.json",
     "preanalyze": "npm run analyze:clean",
     "analyze": "node ./internals/scripts/analyze.js",
