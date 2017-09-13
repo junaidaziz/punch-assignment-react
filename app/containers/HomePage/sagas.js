@@ -1,29 +1,73 @@
 /**
  * Gets the repositories of the user from Github
  */
-
+import _ from 'lodash';
 import { take, call, put, select, cancel, takeLatest } from 'redux-saga/effects';
 import { LOCATION_CHANGE } from 'react-router-redux';
-import { LOAD_REPOS } from 'containers/App/constants';
-import { reposLoaded, repoLoadingError } from 'containers/App/actions';
+import { LOAD_JS_QUESTIONS, LOAD_C_QUESTIONS, LOAD_RUBY_QUESTIONS } from './constants';
+import { jsQuestionsLoaded, QuestionsLoadingError, CQuestionsLoaded, rubyQuestionsLoaded } from './actions';
 
 import request from 'utils/request';
-import { makeSelectUsername } from 'containers/HomePage/selectors';
-
 /**
  * Github repos request/response handler
  */
-export function* getRepos() {
+
+function getAnswersCount(quesArr, responseObject) {
+  let answeredQuestions = _.filter(quesArr, 'is_answered')
+  let acceptedAnswers = []
+   _.map(quesArr, (question) => {
+    if(question.hasOwnProperty('accepted_answer_id'))
+    {
+      acceptedAnswers.push(question)
+    }
+  });
+  responseObject["acceptedAnswers"] = acceptedAnswers.length
+  responseObject["answeredQuestions"] = answeredQuestions.length
+  return responseObject
+}
+
+
+export function* getJSQuestions() {
   // Select username from store
-  const username = yield select(makeSelectUsername());
-  const requestURL = `https://api.github.com/users/${username}/repos?type=all&sort=updated`;
+  const requestURL = 'https://api.stackexchange.com/2.2/search/advanced?fromdate=1505260800&order=desc&sort=activity&tagged=javascript&site=stackoverflow';
+  try {
+    // Call our request helper (see 'utils/request')
+    const jsQuestions = yield call(request, requestURL);
+    let responseObject = { count: jsQuestions.items.length}
+    getAnswersCount(jsQuestions.items, responseObject)
+    yield put(jsQuestionsLoaded(responseObject));
+  } catch (err) {
+    yield put(QuestionsLoadingError(err));
+  }
+}
+
+export function* getRubyQuestions() {
+  // Select username from store
+  const requestURL = 'https://api.stackexchange.com/2.2/search/advanced?fromdate=1505260800&order=desc&sort=activity&tagged=ruby&site=stackoverflow';
 
   try {
     // Call our request helper (see 'utils/request')
-    const repos = yield call(request, requestURL);
-    yield put(reposLoaded(repos, username));
+    const rubyQuestions = yield call(request, requestURL);
+    let responseObject = { count: rubyQuestions.items.length}
+    getAnswersCount(rubyQuestions.items, responseObject)
+    yield put(rubyQuestionsLoaded(responseObject));
   } catch (err) {
-    yield put(repoLoadingError(err));
+    yield put(QuestionsLoadingError(err));
+  }
+}
+
+export function* getCQuestions() {
+  // Select username from store
+  const requestURL = 'https://api.stackexchange.com/2.2/search/advanced?fromdate=1505260800&order=desc&sort=activity&tagged=c%2B%2B&site=stackoverflow';
+
+  try {
+    // Call our request helper (see 'utils/request')
+    const cQuestions = yield call(request, requestURL);
+    let responseObject = { count: cQuestions.items.length}
+    getAnswersCount(cQuestions.items, responseObject)
+    yield put(CQuestionsLoaded(responseObject));
+  } catch (err) {
+    yield put(QuestionsLoadingError(err));
   }
 }
 
@@ -31,17 +75,30 @@ export function* getRepos() {
  * Root saga manages watcher lifecycle
  */
 export function* githubData() {
-  // Watches for LOAD_REPOS actions and calls getRepos when one comes in.
-  // By using `takeLatest` only the result of the latest API call is applied.
-  // It returns task descriptor (just like fork) so we can continue execution
-  const watcher = yield takeLatest(LOAD_REPOS, getRepos);
+  const watcher = yield takeLatest(LOAD_JS_QUESTIONS, getJSQuestions);
 
-  // Suspend execution until location changes
   yield take(LOCATION_CHANGE);
   yield cancel(watcher);
 }
 
+export function* cData() {
+  const c_watcher = yield takeLatest(LOAD_C_QUESTIONS, getCQuestions);
+
+  yield take(LOCATION_CHANGE);
+  yield cancel(c_watcher);
+}
+
+export function* rubyData() {
+  const watcher = yield takeLatest(LOAD_RUBY_QUESTIONS, getRubyQuestions);
+
+  yield take(LOCATION_CHANGE);
+  yield cancel(watcher);
+}
+
+
 // Bootstrap sagas
 export default [
   githubData,
+  cData,
+  rubyData
 ];
